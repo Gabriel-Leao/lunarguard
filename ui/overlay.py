@@ -73,16 +73,18 @@ class Overlay:
     def draw_legend(self, frame):
         h, w = frame.shape[:2]
         keys = [
-            ("[Z] Ocultar HUD",   COLOR_CYAN),
-            ("[R] Resetar fundo", COLOR_WHITE),
-            ("[Q] Sair",          COLOR_WHITE),
+            ("[Z] Ocultar HUD",    COLOR_CYAN),
+            ("[F] Tela cheia",     COLOR_WHITE),
+            ("[R] Resetar fundo",  COLOR_WHITE),
+            ("[Q] Sair",           COLOR_WHITE),
         ]
-        padding = 10
-        line_h  = 28
-        box_h   = padding * 2 + len(keys) * line_h
-        box_w   = 220
-        x0      = w - box_w - 10
-        y0      = 48
+        font_scale = w / 1280 * 0.58
+        line_h     = int(w / 1280 * 28)
+        padding    = int(w / 1280 * 12)
+        box_h      = padding * 2 + len(keys) * line_h
+        box_w      = int(w / 1280 * 240)
+        x0         = w - box_w - 10
+        y0         = 48
 
         bg = frame.copy()
         cv2.rectangle(bg, (x0, y0), (x0 + box_w, y0 + box_h), COLOR_TEXT_BG, -1)
@@ -92,7 +94,7 @@ class Overlay:
         for i, (text, color) in enumerate(keys):
             cv2.putText(frame, text,
                         (x0 + padding, y0 + padding + (i + 1) * line_h - 4),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.58, color, 1, cv2.LINE_AA)
+                        cv2.FONT_HERSHEY_SIMPLEX, font_scale, color, 1, cv2.LINE_AA)
 
     def draw_hud(self, frame, fps: float, fall: bool, intrusion: bool, eyes_closed: bool):
         h, w = frame.shape[:2]
@@ -109,6 +111,8 @@ class Overlay:
         cv2.putText(frame, f"FPS: {fps:.1f}", (w - 110, 26),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.55, COLOR_WHITE, 1, cv2.LINE_AA)
 
+        font_scale = w / 1280 * 0.68
+        line_h     = int(w / 1280 * 32)
         indicators = [
             (f"QUEDA:       {'SIM' if fall        else 'NAO'}", fall),
             (f"INTRUSAO:    {'SIM' if intrusion   else 'NAO'}", intrusion),
@@ -116,5 +120,5 @@ class Overlay:
         ]
         for i, (text, active) in enumerate(indicators):
             color = COLOR_ALERT if active else COLOR_OK
-            cv2.putText(frame, text, (10, h - 100 + i * 32),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.68, color, 2, cv2.LINE_AA)
+            cv2.putText(frame, text, (10, h - 20 - (len(indicators) - 1 - i) * line_h),
+                        cv2.FONT_HERSHEY_SIMPLEX, font_scale, color, 2, cv2.LINE_AA)

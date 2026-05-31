@@ -46,5 +46,4 @@ class ZoneManager:
                     and by + bh > zone.y1
                 ):
                     intrusions.append((zone, box))
-                    break
         return intrusions

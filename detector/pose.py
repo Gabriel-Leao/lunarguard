@@ -12,6 +12,7 @@ _LEFT_KNEE      = 25
 _RIGHT_KNEE     = 26
 _LEFT_SHOULDER  = 11
 _RIGHT_SHOULDER = 12
+_NOSE           = 0
 
 POSE_CONNECTIONS = [
     (11, 12), (11, 13), (13, 15), (12, 14), (14, 16),
@@ -68,17 +69,20 @@ class FallDetector:
             return lm[idx].visibility
 
         avg_hip_vis = (vis(_LEFT_HIP) + vis(_RIGHT_HIP)) / 2
-        if avg_hip_vis < 0.3:
-            return self._last_fall
 
         avg_hip  = (y(_LEFT_HIP)      + y(_RIGHT_HIP))      / 2
         avg_knee = (y(_LEFT_KNEE)     + y(_RIGHT_KNEE))     / 2
         avg_sh   = (y(_LEFT_SHOULDER) + y(_RIGHT_SHOULDER)) / 2
+        nose_y   = y(_NOSE)
 
         hip_below_knee = avg_hip >= avg_knee - 0.08
         shoulders_low  = abs(avg_sh - avg_hip) < 0.20
+        fall_by_hips   = avg_hip_vis >= 0.3 and hip_below_knee and shoulders_low
 
-        self._last_fall = hip_below_knee and shoulders_low
+        nose_sh_diff = abs(nose_y - avg_sh)
+        fall_by_head = nose_sh_diff < 0.12
+
+        self._last_fall = fall_by_hips or fall_by_head
         return self._last_fall
 
     def close(self):

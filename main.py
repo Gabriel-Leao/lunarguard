@@ -8,6 +8,13 @@ from detector.pose import FallDetector
 from detector.blink import BlinkDetector
 from ui.overlay import Overlay
 
+try:
+    from screeninfo import get_monitors
+    _mon = get_monitors()[0]
+    SCREEN_W, SCREEN_H = _mon.width, _mon.height
+except Exception:
+    SCREEN_W, SCREEN_H = 1920, 1080
+
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -23,6 +30,16 @@ def open_capture(source: str):
     return cap
 
 
+def get_screen_size():
+    tmp = cv2.namedWindow("_tmp", cv2.WINDOW_NORMAL)
+    cv2.setWindowProperty("_tmp", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
+    cv2.waitKey(1)
+    sw = cv2.getWindowImageRect("_tmp")[2]
+    sh = cv2.getWindowImageRect("_tmp")[3]
+    cv2.destroyWindow("_tmp")
+    return sw, sh
+
+
 def main():
     args = parse_args()
     cap  = open_capture(args.source)
@@ -36,6 +53,11 @@ def main():
     blink_detector  = BlinkDetector()
     overlay         = Overlay()
 
+    win = "LunarGuard"
+    cv2.namedWindow(win, cv2.WINDOW_NORMAL)
+    cv2.resizeWindow(win, 1280, 720)
+
+    fullscreen = False
     show_zones = True
     prev_time  = time.time()
 
@@ -87,7 +109,12 @@ def main():
                          intrusion=bool(intrusions), eyes_closed=eyes_closed)
         overlay.draw_alert(frame)
 
-        cv2.imshow("LunarGuard", frame)
+        if fullscreen:
+            display = cv2.resize(frame, (SCREEN_W, SCREEN_H))
+        else:
+            display = frame
+
+        cv2.imshow(win, display)
 
         key = cv2.waitKey(1) & 0xFF
         if key == ord("q"):
@@ -96,6 +123,13 @@ def main():
             motion_detector = MotionDetector(min_area=1500)
         elif key == ord("z"):
             show_zones = not show_zones
+        elif key == ord("f"):
+            fullscreen = not fullscreen
+            if fullscreen:
+                cv2.setWindowProperty(win, cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
+            else:
+                cv2.setWindowProperty(win, cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_NORMAL)
+                cv2.resizeWindow(win, 1280, 720)
 
     cap.release()
     fall_detector.close()
