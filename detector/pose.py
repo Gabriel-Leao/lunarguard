@@ -1,59 +1,85 @@
 import mediapipe as mp
-import numpy as np
+from mediapipe.tasks import python as mp_python
+from mediapipe.tasks.python import vision
+import urllib.request
+import os
+import time
+
+
+_LEFT_HIP       = 23
+_RIGHT_HIP      = 24
+_LEFT_KNEE      = 25
+_RIGHT_KNEE     = 26
+_LEFT_SHOULDER  = 11
+_RIGHT_SHOULDER = 12
+
+POSE_CONNECTIONS = [
+    (11, 12), (11, 13), (13, 15), (12, 14), (14, 16),
+    (11, 23), (12, 24), (23, 24), (23, 25), (24, 26),
+    (25, 27), (26, 28),
+]
+
+MODEL_PATH = "pose_landmarker.task"
+MODEL_URL = (
+    "https://storage.googleapis.com/mediapipe-models/"
+    "pose_landmarker/pose_landmarker_lite/float16/latest/pose_landmarker_lite.task"
+)
+
+
+def _ensure_model():
+    if not os.path.exists(MODEL_PATH):
+        print("[LunarGuard] Baixando modelo MediaPipe Pose (~3 MB)...")
+        urllib.request.urlretrieve(MODEL_URL, MODEL_PATH)
 
 
 class FallDetector:
-    """
-    Usa MediaPipe Pose para detectar quedas/colapso.
-    Critério: quadril abaixo dos joelhos E ombros próximos do quadril
-    (pessoa deitada ou colapsada no chão).
-    """
-
     def __init__(self):
-        self._mp_pose = mp.solutions.pose
-        self._pose = self._mp_pose.Pose(
-            static_image_mode=False,
-            model_complexity=0,          # mais leve, suficiente para tempo real
-            smooth_landmarks=True,
-            min_detection_confidence=0.5,
-            min_tracking_confidence=0.5,
+        _ensure_model()
+
+        base_options = mp_python.BaseOptions(model_asset_path=MODEL_PATH)
+        options = vision.PoseLandmarkerOptions(
+            base_options=base_options,
+            running_mode=vision.RunningMode.VIDEO,
+            num_poses=1,
+            min_pose_detection_confidence=0.4,
+            min_pose_presence_confidence=0.4,
+            min_tracking_confidence=0.4,
         )
+        self._landmarker = vision.PoseLandmarker.create_from_options(options)
         self.landmarks = None
+        self._last_fall = False
 
     def process(self, frame_rgb) -> bool:
-        """
-        Processa frame RGB e retorna True se uma queda for detectada.
-        Também armazena landmarks para o overlay desenhar o esqueleto.
-        """
-        results = self._pose.process(frame_rgb)
-        self.landmarks = results.pose_landmarks
+        ts = int(time.time() * 1000)
+        mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=frame_rgb)
+        result = self._landmarker.detect_for_video(mp_image, ts)
 
-        if not results.pose_landmarks:
-            return False
+        if not result.pose_landmarks:
+            self.landmarks = None
+            return self._last_fall
 
-        lm = results.pose_landmarks.landmark
-        mp_pose = self._mp_pose.PoseLandmark
+        lm = result.pose_landmarks[0]
+        self.landmarks = lm
 
         def y(idx):
-            return lm[idx].y  # normalizado 0-1 (maior = mais abaixo na tela)
+            return lm[idx].y
 
-        left_hip   = y(mp_pose.LEFT_HIP)
-        right_hip  = y(mp_pose.RIGHT_HIP)
-        left_knee  = y(mp_pose.LEFT_KNEE)
-        right_knee = y(mp_pose.RIGHT_KNEE)
-        left_sh    = y(mp_pose.LEFT_SHOULDER)
-        right_sh   = y(mp_pose.RIGHT_SHOULDER)
+        def vis(idx):
+            return lm[idx].visibility
 
-        avg_hip    = (left_hip + right_hip) / 2
-        avg_knee   = (left_knee + right_knee) / 2
-        avg_sh     = (left_sh + right_sh) / 2
+        avg_hip_vis = (vis(_LEFT_HIP) + vis(_RIGHT_HIP)) / 2
+        if avg_hip_vis < 0.3:
+            return self._last_fall
 
-        # Queda: quadril abaixo ou no nível dos joelhos
-        # E ombros próximos do quadril (diferença < 15% da altura normalizada)
-        hip_below_knee = avg_hip >= avg_knee - 0.05
-        shoulders_low  = abs(avg_sh - avg_hip) < 0.15
+        avg_hip  = (y(_LEFT_HIP)      + y(_RIGHT_HIP))      / 2
+        avg_knee = (y(_LEFT_KNEE)     + y(_RIGHT_KNEE))     / 2
+        avg_sh   = (y(_LEFT_SHOULDER) + y(_RIGHT_SHOULDER)) / 2
 
-        return hip_below_knee and shoulders_low
+        hip_below_knee = avg_hip >= avg_knee - 0.08
+        shoulders_low  = abs(avg_sh - avg_hip) < 0.20
+
+        self._last_fall = hip_below_knee and shoulders_low
+        return self._last_fall
 
     def close(self):
-        self._pose.close()
+        self._landmarker.close()

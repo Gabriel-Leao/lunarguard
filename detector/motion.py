@@ -2,11 +2,6 @@ import cv2
 
 
 class MotionDetector:
-    """
-    Detecta movimento no frame usando subtração de fundo (MOG2).
-    Retorna contornos de regiões com movimento significativo.
-    """
-
     def __init__(self, min_area: int = 1500):
         self.min_area = min_area
         self._bg_subtractor = cv2.createBackgroundSubtractorMOG2(
@@ -14,23 +9,15 @@ class MotionDetector:
         )
 
     def detect(self, frame) -> list[tuple]:
-        """
-        Processa o frame e retorna lista de bounding boxes (x, y, w, h)
-        de regiões com movimento detectado.
-        """
         fg_mask = self._bg_subtractor.apply(frame)
 
-        # Remove sombras (pixels cinza viram preto)
         _, thresh = cv2.threshold(fg_mask, 200, 255, cv2.THRESH_BINARY)
 
-        # Reduz ruído
         kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
         thresh = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel)
         thresh = cv2.dilate(thresh, kernel, iterations=2)
 
-        contours, _ = cv2.findContours(
-            thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
-        )
+        contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
         boxes = []
         for cnt in contours:
