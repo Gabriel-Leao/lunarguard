@@ -1,6 +1,14 @@
 # 🛸 LunarGuard — Sistema de Monitoramento Visual de Base Lunar
 
-> FIAP Global Solution 2025 · Space Connect · Tecnologia Espacial Aplicada a Desafios Reais
+> FIAP Global Solution 2026 · Space Connect · Tecnologia Espacial Aplicada a Desafios Reais
+
+---
+
+## 🎬 Demo
+
+[![LunarGuard Demo](https://img.shields.io/badge/YouTube-Demo-red?logo=youtube)](https://youtu.be/QNgEQvthIrE)
+
+> Assista à demonstração completa do sistema funcionando em tempo real.
 
 ---
 
@@ -13,6 +21,7 @@ A NASA e empresas privadas planejam bases lunares permanentes com presença huma
 - **Detecta movimento** em câmeras de vigilância da base usando subtração de fundo (MOG2)
 - **Define zonas restritas** (ex: Núcleo de Controle, Reator de Energia) e alerta quando há intrusão
 - **Detecta quedas e colapso** de astronautas usando análise de pose corporal (MediaPipe Pose)
+- **Detecta inconsciência** pelo fechamento prolongado dos olhos (MediaPipe Face Landmarker + EAR)
 - Exibe um **HUD temático** com status em tempo real, indicadores e alertas visuais
 
 A mesma tecnologia tem aplicação direta na Terra em: fábricas, data centers, hospitais, mineradoras e qualquer instalação crítica.
@@ -31,7 +40,9 @@ Captura de Frame (OpenCV)
      │         │
      │         └──► Verificação de Zonas Restritas → Alerta de Intrusão
      │
-     └──► MediaPipe Pose → Análise de Landmarks → Detecção de Queda
+     ├──► MediaPipe Pose → Análise de Landmarks → Detecção de Queda
+     │
+     └──► MediaPipe Face → EAR (Eye Aspect Ratio) → Detecção de Inconsciência
      │
      ▼
 Overlay HUD + Alertas Visuais → Exibição
@@ -44,8 +55,9 @@ Overlay HUD + Alertas Visuais → Exibição
 | Biblioteca | Uso |
 |---|---|
 | `opencv-python` | Captura de vídeo, background subtraction, desenho, exibição |
-| `mediapipe` | Detecção de pose corporal (skeleton landmarks) |
+| `mediapipe` | Detecção de pose corporal e landmarks faciais |
 | `numpy` | Operações auxiliares de array |
+| `screeninfo` | Resolução do monitor para modo tela cheia |
 
 ---
 
@@ -106,6 +118,8 @@ Após ativar, o terminal exibirá o prefixo `(venv)` no início da linha.
 pip install -r requirements.txt
 ```
 
+> Na primeira execução, o sistema baixa automaticamente os modelos do MediaPipe (~28 MB no total).
+
 ---
 
 ### 5. Execute o projeto
@@ -127,9 +141,10 @@ python main.py --source caminho/para/video.mp4
 
 | Tecla | Ação |
 |---|---|
+| `Z` | Mostrar/ocultar zonas e legenda |
+| `F` | Alternar tela cheia |
+| `R` | Resetar o background |
 | `Q` | Sair |
-| `R` | Resetar o background subtractor (útil ao mudar de cena) |
-| `Z` | Mostrar/ocultar as zonas de segurança |
 
 ---
 
@@ -145,29 +160,32 @@ deactivate
 
 ```
 lunarguard/
-├── main.py                 # Entry point principal
+├── main.py
 ├── requirements.txt
 ├── README.md
 ├── detector/
-│   ├── motion.py           # Detecção de movimento (MOG2 + contornos)
-│   ├── zone.py             # Gerenciamento de zonas restritas
-│   └── pose.py             # Detecção de queda via MediaPipe Pose
+│   ├── motion.py       # Detecção de movimento (MOG2)
+│   ├── zone.py         # Zonas restritas
+│   ├── pose.py         # Detecção de queda (MediaPipe Pose)
+│   └── blink.py        # Detecção de inconsciência (MediaPipe Face + EAR)
 └── ui/
-    └── overlay.py          # HUD, alertas e desenho sobre o frame
+    └── overlay.py      # HUD, alertas e desenho sobre o frame
 ```
 
 ---
 
-## 👥 Integrantes
+## Membros do Grupo
 
-| Nome | RM |
-|---|---|
-| Nome do integrante 1 | RM00000 |
-| Nome do integrante 2 | RM00000 |
-| Nome do integrante 3 | RM00000 |
+| Nome                                  | RM     |
+| ------------------------------------- | ------ |
+| **Gabriel Leão da Silva**             | 552642 |
+| **Matheus Farias de Lima**            | 554254 |
+| **Miguel Mauricio Parrado Patarroyo** | 554007 |
+| **Pedro Henrique Nardaci Chaves**     | 553988 |
+| **Vitor Pinheiro Nascimento**         | 553693 |
 
 ---
 
-## 🔗 Contexto — FIAP Global Solution 2025
+## 🔗 Contexto — FIAP Global Solution 2026
 
 Este projeto foi desenvolvido como resposta ao desafio **Space Connect**, que propõe o uso de tecnologia, dados e inovação para resolver desafios da Terra e ampliar as possibilidades da economia espacial. O LunarGuard conecta diretamente o problema de segurança em bases lunares com aplicações práticas em infraestruturas críticas terrestres.

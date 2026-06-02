@@ -16,8 +16,8 @@ MODEL_URL = (
 _LEFT_EYE  = [33, 160, 158, 133, 153, 144]
 _RIGHT_EYE = [362, 385, 387, 263, 373, 380]
 
-EAR_THRESHOLD = 0.15
-CLOSED_FRAMES = 25
+EAR_THRESHOLD  = 0.15
+CLOSED_SECONDS = 2.5
 
 
 def _ensure_model():
@@ -50,7 +50,7 @@ class BlinkDetector:
             min_tracking_confidence=0.4,
         )
         self._landmarker = vision.FaceLandmarker.create_from_options(options)
-        self._closed_count = 0
+        self._closed_since = None
         self.face_landmarks = None
         self._last_closed = False
 
@@ -62,7 +62,7 @@ class BlinkDetector:
 
         if not result.face_landmarks:
             self.face_landmarks = None
-            self._closed_count = 0
+            self._closed_since = None
             return self._last_closed
 
         lm = result.face_landmarks[0]
@@ -72,12 +72,17 @@ class BlinkDetector:
         right_ear = _ear(lm, _RIGHT_EYE, w, h)
         avg_ear   = (left_ear + right_ear) / 2.0
 
-        if avg_ear < EAR_THRESHOLD:
-            self._closed_count += 1
-        else:
-            self._closed_count = max(0, self._closed_count - 1)
+        print(f"EAR: {avg_ear:.3f}", end="\r")
 
-        self._last_closed = self._closed_count >= CLOSED_FRAMES
+        now = time.time()
+        if avg_ear < EAR_THRESHOLD:
+            if self._closed_since is None:
+                self._closed_since = now
+            self._last_closed = (now - self._closed_since) >= CLOSED_SECONDS
+        else:
+            self._closed_since = None
+            self._last_closed = False
+
         return self._last_closed
 
     def close(self):
