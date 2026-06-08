@@ -1,10 +1,10 @@
-# 🛸 LunarGuard — Sistema de Monitoramento Visual de Base Lunar
+# LunarGuard — Sistema de Monitoramento Visual de Base Lunar
 
 > FIAP Global Solution 2026 · Space Connect · Tecnologia Espacial Aplicada a Desafios Reais
 
 ---
 
-## 🎬 Demo
+## Demo
 
 [![LunarGuard Demo](https://img.shields.io/badge/YouTube-Demo-red?logo=youtube)](https://youtu.be/QNgEQvthIrE)
 
@@ -12,7 +12,7 @@
 
 ---
 
-## 📌 Descrição da Solução
+## Descrição da Solução
 
 A NASA e empresas privadas planejam bases lunares permanentes com presença humana contínua e operação parcialmente remota da Terra. Nesse cenário, um sistema de vigilância inteligente é essencial para garantir a segurança dos astronautas e da infraestrutura crítica.
 
@@ -28,7 +28,7 @@ A mesma tecnologia tem aplicação direta na Terra em: fábricas, data centers, 
 
 ---
 
-## 🧠 Pipeline de Visão Computacional
+## Pipeline de Visão Computacional
 
 ```
 Câmera/Vídeo
@@ -50,7 +50,7 @@ Overlay HUD + Alertas Visuais → Exibição
 
 ---
 
-## 📦 Bibliotecas Utilizadas
+## Bibliotecas Utilizadas
 
 | Biblioteca | Uso |
 |---|---|
@@ -61,7 +61,7 @@ Overlay HUD + Alertas Visuais → Exibição
 
 ---
 
-## ⚙️ Instalação e Execução
+## Instalação e Execução
 
 ### 1. Pré-requisitos
 
@@ -82,28 +82,28 @@ cd lunarguard
 
 ### 3. Crie e ative o ambiente virtual
 
-#### 🍎 Mac / 🐧 Linux
+#### Mac / Linux
 
 ```bash
 python3 -m venv venv
 source venv/bin/activate
 ```
 
-#### 🪟 Windows (Prompt de Comando)
+#### Windows (Prompt de Comando)
 
 ```cmd
 python -m venv venv
 venv\Scripts\activate.bat
 ```
 
-#### 🪟 Windows (PowerShell)
+#### Windows (PowerShell)
 
 ```powershell
 python -m venv venv
 venv\Scripts\Activate.ps1
 ```
 
-> ⚠️ No PowerShell, caso apareça um erro de permissão, execute antes:
+> No PowerShell, caso apareça um erro de permissão, execute antes:
 > ```powershell
 > Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 > ```
@@ -156,7 +156,7 @@ deactivate
 
 ---
 
-## 🗂️ Estrutura do Projeto
+## Estrutura do Projeto
 
 ```
 lunarguard/
@@ -186,6 +186,6 @@ lunarguard/
 
 ---
 
-## 🔗 Contexto — FIAP Global Solution 2026
+## Contexto — FIAP Global Solution 2026
 
 Este projeto foi desenvolvido como resposta ao desafio **Space Connect**, que propõe o uso de tecnologia, dados e inovação para resolver desafios da Terra e ampliar as possibilidades da economia espacial. O LunarGuard conecta diretamente o problema de segurança em bases lunares com aplicações práticas em infraestruturas críticas terrestres.
